@@ -17,4 +17,11 @@ class Task:
     def __repr__(self) -> str:
         return f"<Task {self.id:>5} name {self.name[:8]}>"
 
-    def complete(self) -> None: ...
+    def assign_id(self, id: int) -> None:
+        self.id = id
+
+    def complete(self) -> None:
+        self.nextup += self.frequency
+
+
+def test_list(): ...
