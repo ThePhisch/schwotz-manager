@@ -30,3 +30,30 @@ def test_complete():
     task = Task("Test Task", datetime.now(), timedelta(days=1), "Test User")
     task.complete()
     assert task.nextup.date() == (datetime.now() + timedelta(days=1)).date()
+
+
+def test_to_dict():
+    # assert that the to_dict method will work
+    task = Task("Test Task", datetime.now(), timedelta(days=1), "Test User")
+    task.assign_id(1)
+    dict_format = task.to_dict()
+    assert dict_format == {
+        "id": 1,
+        "name": "Test Task",
+        "nextup": task.nextup.strftime(Task.timeformat),
+        "frequency": task.frequency.total_seconds(),
+        "assigned": "Test User",
+    }
+
+    # manually reconstruct the task
+    task_reconstructed = Task(
+        dict_format["name"],
+        datetime.strptime(dict_format["nextup"], Task.timeformat),
+        timedelta(seconds=dict_format["frequency"]),
+        dict_format["assigned"],
+    )
+
+    assert task_reconstructed.id == None
+    assert task_reconstructed.name == "Test Task"
+    assert task_reconstructed.frequency == timedelta(days=1)
+    assert task_reconstructed.nextup.date() == datetime.now().date()

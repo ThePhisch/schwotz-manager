@@ -1,27 +1,22 @@
 import pytest
+from unittest.mock import Mock
 
 from datetime import datetime, timedelta
 
 from src.entity.task import Task
 
 
-@pytest.fixture
-def sample_task():
-    task = Task("Test Task", datetime.now(), timedelta(days=17), "Test User")
-    task.assign_id(6000)
-    return task
+class TestTask:
+    def setup_method(self):
+        self.task = Task("Test Task", datetime.now(), timedelta(days=1), "Test User")
+        self.db = Mock()
 
+    def test_add(self): ...
 
-def test_new(): ...
+    def test_change(self): ...
 
+    def test_complete(self): ...
 
-def test_change(): ...
+    def test_delete(self): ...
 
-
-def test_complete(): ...
-
-
-def test_delete(): ...
-
-
-def test_list(): ...
+    def test_list(self): ...

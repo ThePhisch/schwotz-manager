@@ -1,7 +1,11 @@
 from datetime import datetime, timedelta
 
+from src.typing import StrDict
+
 
 class Task:
+    timeformat = "%Y-%m-%d %H:%M:%S"
+
     def __init__(
         self, name: str, nextup: datetime, frequency: timedelta, assigned: str
     ) -> None:
@@ -23,5 +27,11 @@ class Task:
     def complete(self) -> None:
         self.nextup += self.frequency
 
-
-def test_list(): ...
+    def to_dict(self) -> StrDict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "nextup": self.nextup.strftime(Task.timeformat),  # Convert datetime to string
+            "frequency": self.frequency.total_seconds(),  # Convert timedelta to string
+            "assigned": self.assigned,
+        }
