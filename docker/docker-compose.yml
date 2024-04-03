@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+    restart: always
+    ports:
+      - "5432:5432"
+  web:
+    image: python:latest
+    restart: always
+    command: ["sleep", "infinity"]
