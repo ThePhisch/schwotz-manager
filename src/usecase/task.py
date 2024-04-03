@@ -15,6 +15,11 @@ class TaskUsecases:
     def get_task(self, task_id: int) -> StrDict:
         return self.db.get_task(task_id)
 
+    def complete_task(self, task_id: int) -> None:
+        task = self.get_task(task_id)
+        task["nextup"] = task["nextup"] + task["frequency"]
+        self.update_task(task_id, task)
+
     def update_task(self, task_id: int, data: StrDict) -> None:
         self.db.update_task(task_id, data)
 
