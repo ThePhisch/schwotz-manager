@@ -9,12 +9,12 @@ from src.usecase.interfaces import DBInterface
 
 
 class PostgresDB(DBInterface):
-    def __init__(self, dbname: str, user: str, password: str, host: str, port: str):
+    def __init__(self, dbname: str, dbuser: str, dbpass: str, dbhost: str, dbport: str):
         self.dbname = dbname
-        self.user = user
-        self.password = password
-        self.host = host
-        self.port = port
+        self.user = dbuser
+        self.password = dbpass
+        self.host = dbhost
+        self.port = dbport
         self.connection = None
         self.cursor = None
 

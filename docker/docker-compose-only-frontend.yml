@@ -1,0 +1,9 @@
+services:
+  frontend:
+    image: node:21
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend/schwotz-frontend:/schwotz-frontend
+      - ./frontend_init.sh:/frontend_init.sh
+    command: ["sh", "/frontend_init.sh"]

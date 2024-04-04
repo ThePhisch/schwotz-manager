@@ -1,8 +1,12 @@
+import tomllib
+
 from src.app import assembler
 
-app = assembler()
+with open("db_password", "rb") as f:
+    configdata = tomllib.load(f)
+
+app = assembler(**configdata)
 
 if __name__ == "__main__":
-    app = assembler()
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8005)
