@@ -1,10 +1,11 @@
 # connect to postgres db using psycopg2
 
 from functools import wraps
-from typing import Callable
+from typing import Generator, Any
 
 import psycopg2
 
+from src.typing import StrDict
 from src.usecase.interfaces import DBInterface
 
 
@@ -34,7 +35,6 @@ class PostgresDB(DBInterface):
             self.cursor.close()
         self.connection.close()
 
-
     def create_table(self) -> None:
         assert (
             self.cursor is not None and self.connection is not None
@@ -44,7 +44,7 @@ class PostgresDB(DBInterface):
             "   id SERIAL PRIMARY KEY,"
             "   name TEXT NOT NULL,"
             "   nextup TIMESTAMP NOT NULL,"
-            "   frequency INTERVAL NOT NULL,"
+            "   timedelta INTERVAL NOT NULL,"
             "   assigned TEXT NOT NULL"
             ");"
         )
@@ -55,8 +55,8 @@ class PostgresDB(DBInterface):
             self.cursor is not None and self.connection is not None
         ), "Database not open"
         self.cursor.execute(
-            "INSERT INTO tasks (name, nextup, frequency, assigned) VALUES (%s, %s, %s, %s) RETURNING id;",
-            (task["name"], task["nextup"], task["frequency"], task["assigned"]),
+            "INSERT INTO tasks (name, nextup, timedelta, assigned) VALUES (%s, %s, %s, %s) RETURNING id;",
+            (task["name"], task["nextup"], task["timedelta"], task["assigned"]),
         )
         self.connection.commit()
         result = self.cursor.fetchone()
@@ -76,7 +76,7 @@ class PostgresDB(DBInterface):
                 "id": result[0],
                 "name": result[1],
                 "nextup": result[2],
-                "frequency": result[3],
+                "timedelta": result[3],
                 "assigned": result[4],
             }
         else:
@@ -87,11 +87,11 @@ class PostgresDB(DBInterface):
             self.cursor is not None and self.connection is not None
         ), "Database not open"
         self.cursor.execute(
-            "UPDATE tasks SET name = %s, nextup = %s, frequency = %s, assigned = %s WHERE id = %s;",
+            "UPDATE tasks SET name = %s, nextup = %s, timedelta = %s, assigned = %s WHERE id = %s;",
             (
                 data["name"],
                 data["nextup"],
-                data["frequency"],
+                data["timedelta"],
                 data["assigned"],
                 task_id,
             ),
@@ -105,19 +105,17 @@ class PostgresDB(DBInterface):
         self.cursor.execute("DELETE FROM tasks WHERE id = %s;", (task_id,))
         self.connection.commit()
 
-    def list_tasks(self) -> list[dict]:
+    def list_tasks(self) -> Generator[StrDict, None, None]:
         assert (
             self.cursor is not None and self.connection is not None
         ), "Database not open"
         self.cursor.execute("SELECT * FROM tasks;")
         result = self.cursor.fetchall()
-        return [
-            {
+        for task in result:
+            yield {
                 "id": task[0],
                 "name": task[1],
                 "nextup": task[2],
-                "frequency": task[3],
+                "timedelta": task[3],
                 "assigned": task[4],
-            } for task in result
-        ]
-
+            }
