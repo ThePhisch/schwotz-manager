@@ -8,8 +8,6 @@ export default function Card(props: {
 	task: Task, 
 })  {
 	const [task, setTask] = useState<Task>(props.task);
-	const [editing, setEditing] = useState<boolean>(false);
-	const [newtask, setNewTask] = useState<Task>(props.task);
 
 	return (
 		<div
@@ -41,18 +39,18 @@ export default function Card(props: {
 					>
 						Erledigt!
 					</button>
-					<button
+					<a
+						href={`/edit/${task.id}`}
 						className={twMerge(
 							"bg-blue-100 hover:bg-blue-200 border-blue-500 text-blue-900",
 							"px-4 py-2 border-2 rounded-md w-36"
 						)}
-						onClick={e => {setEditing(!editing)}}
 					>
 						Bearbeiten
-					</button>
+					</a>
 				</div>
 			</div>
-			<form
+			{/* <form
 				className={twMerge(
 					"p-4 my-4 bg-gray-100 shadow-md rounded-md",
 					editing ? "flex" : "hidden",
@@ -115,7 +113,7 @@ export default function Card(props: {
 				>
 					Änderungen Speichern
 				</button>
-			</form>
+			</form> */}
 		</div>
 	)
 }

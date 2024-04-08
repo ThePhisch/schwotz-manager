@@ -61,7 +61,7 @@ export async function task_delete(task_id: number) {
 export async function task_update(task: Task) {
 	"use server"
 	const response = await fetch(`http://docker-web-1:8005/t/${task.id}`, {
-		method: 'PUT',
+		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 		},
