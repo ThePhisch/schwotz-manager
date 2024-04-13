@@ -32,7 +32,7 @@ class UserUsecases:
         return self.db.add_user(user.model_dump())
 
     def get_user(self, user_id: int) -> User:
-        return User(**self.db.get_user(user_id))
+        return User(**self.db.get_user(user_id)).obfuscate()
 
     def update_user(self, user_id: int, data: User) -> None:
         self.db.update_user(user_id, data.model_dump())
@@ -41,4 +41,4 @@ class UserUsecases:
         self.db.delete_user(user_id)
 
     def list_users(self) -> list[User]:
-        return [User(**t) for t in self.db.list_users()]
+        return [User(**t).obfuscate() for t in self.db.list_users()]
