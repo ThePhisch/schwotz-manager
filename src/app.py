@@ -1,14 +1,26 @@
 from src.usecase.task import TaskUsecases
-from src.db.postgres import PostgresDB
-from src.web.fastapi import create_app
+from src.db.postgres import PostgresTaskDB, PostgresUserDB
+from src.usecase.user import UserUsecases
+from src.web.fastapi import core_api, create_app
+from src.web.task import task_api
+from src.web.user import user_api
 
 def task_usecase(
     **dbconfig
 ) -> TaskUsecases:
-    db = PostgresDB(**dbconfig)
+    db = PostgresTaskDB(**dbconfig)
     db.open()
     db.create_table()
     u = TaskUsecases(db)
+    return u
+
+def user_usecase(
+    **dbconfig
+) -> UserUsecases:
+    db = PostgresUserDB(**dbconfig)
+    db.open()
+    db.create_table()
+    u = UserUsecases(db)
     return u
 
 def assembler(**config):
@@ -19,5 +31,8 @@ def assembler(**config):
         "dbhost": config.get("dbhost", "docker-db-1"),
         "dbport": config.get("dbport", "5432"),
     }
-    u = task_usecase(**dbconfig)
-    return create_app(u)
+    return create_app([
+        core_api(),
+        task_api(task_usecase(**dbconfig)),
+        user_api(user_usecase(**dbconfig))
+    ])

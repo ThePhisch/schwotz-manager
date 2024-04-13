@@ -7,9 +7,9 @@ import psycopg2
 
 from src.typing import StrDict
 from src.usecase.interfaces import DBInterface
+from src.usecase.user import UserDBInterface
 
-
-class PostgresDB(DBInterface):
+class PostgresDB():
     def __init__(self, dbname: str, dbuser: str, dbpass: str, dbhost: str, dbport: str):
         self.dbname = dbname
         self.user = dbuser
@@ -35,6 +35,84 @@ class PostgresDB(DBInterface):
             self.cursor.close()
         self.connection.close()
 
+class PostgresUserDB(PostgresDB, UserDBInterface):
+    def __init__(self, dbname: str, dbuser: str, dbpass: str, dbhost: str, dbport: str):
+        super().__init__(dbname, dbuser, dbpass, dbhost, dbport)
+
+    def create_table(self) -> None:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute(
+            "CREATE TABLE IF NOT EXISTS users ("
+            "   id SERIAL PRIMARY KEY,"
+            "   username TEXT NOT NULL,"
+            "   password TEXT NOT NULL"
+            ");"
+        )
+        self.connection.commit()
+
+    def add_user(self, user: StrDict) -> int:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute(
+            "INSERT INTO users (username, password) VALUES (%s, %s) RETURNING id;",
+            (user["username"], user["password"]),
+        )
+        self.connection.commit()
+        result = self.cursor.fetchone()
+        if result is not None:
+            return result[0]
+        else:
+            raise Exception("User not added")
+
+    def get_user(self, user_id: int) -> StrDict:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute("SELECT * FROM users WHERE id = %s;", (user_id,))
+        result = self.cursor.fetchone()
+        if result is not None:
+            return {
+                "id": result[0],
+                "username": result[1],
+                "password": result[2],
+            }
+        else:
+            raise Exception("User not found")
+
+    def update_user(self, user_id: int, data: StrDict) -> None:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute(
+            "UPDATE users SET username = %s, password = %s WHERE id = %s;",
+            (data["username"], data["password"], user_id),
+        )
+        self.connection.commit()
+
+    def delete_user(self, user_id: int) -> None:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute("DELETE FROM users WHERE id = %s;", (user_id,))
+        self.connection.commit()
+
+    def list_users(self) -> Generator[StrDict, None, None]:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute("SELECT * FROM users;")
+        result = self.cursor.fetchall()
+        for user in result:
+            yield {
+                "id": user[0],
+                "username": user[1],
+                "password": user[2],
+            }
+
+class PostgresTaskDB(PostgresDB, DBInterface):
     def create_table(self) -> None:
         assert (
             self.cursor is not None and self.connection is not None
