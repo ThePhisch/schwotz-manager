@@ -1,9 +1,10 @@
 from typing import Protocol
 
 from src.entity.user import User
+from src.usecase.generic import DBInterface, Usecase
 
 
-class UserDBInterface(Protocol):
+class UserDBInterface(DBInterface):
     def add_user(self, user: dict) -> int: ...
 
     def get_user(self, user_id: int) -> dict: ...
@@ -14,19 +15,10 @@ class UserDBInterface(Protocol):
 
     def list_users(self) -> list[dict]: ...
 
-    def close(self) -> None: ...
-
-    def open(self) -> None: ...
-
-    def create_table(self) -> None: ...
+    def get_id_from_username(self, username: str) -> int: ...
 
 
-class UserUsecases:
-    def __init__(
-        self,
-        db: UserDBInterface,
-    ) -> None:
-        self.db = db
+class UserUsecases(Usecase[UserDBInterface]):
 
     def add_user(self, user: User) -> int:
         return self.db.add_user(user.model_dump())
@@ -42,3 +34,6 @@ class UserUsecases:
 
     def list_users(self) -> list[User]:
         return [User(**t).obfuscate() for t in self.db.list_users()]
+
+    def get_id_from_username(self, username: str) -> int:
+        return self.db.get_id_from_username(username)

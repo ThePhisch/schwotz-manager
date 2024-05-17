@@ -1,13 +1,24 @@
+from typing import Generator
+
+from src.usecase.generic import Usecase
 from src.usecase.interfaces import DBInterface
 from src.entity.task import Task
+from src.typing import StrDict
 
 
-class TaskUsecases:
-    def __init__(
-        self,
-        db: DBInterface,
-    ) -> None:
-        self.db = db
+class TaskDBInterface(DBInterface):
+    def add_task(self, task: StrDict) -> int: ...
+
+    def get_task(self, task_id: int) -> StrDict: ...
+
+    def update_task(self, task_id: int, data: StrDict) -> None: ...
+
+    def delete_task(self, task_id: int) -> None: ...
+
+    def list_tasks(self) -> Generator[StrDict, None, None]: ...
+
+
+class TaskUsecases(Usecase[TaskDBInterface]):
 
     def add_task(self, task: Task) -> int:
         return self.db.add_task(task.model_dump())

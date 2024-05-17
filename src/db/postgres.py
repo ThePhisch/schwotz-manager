@@ -112,6 +112,17 @@ class PostgresUserDB(PostgresDB, UserDBInterface):
                 "password": user[2],
             }
 
+    def get_id_from_username(self, username: str) -> int:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute("SELECT id FROM users WHERE username = %s;", (username,))
+        result = self.cursor.fetchone()
+        if result is not None:
+            return result[0]
+        else:
+            raise Exception("User not found")
+
 class PostgresTaskDB(PostgresDB, DBInterface):
     def create_table(self) -> None:
         assert (

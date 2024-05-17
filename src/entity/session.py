@@ -5,7 +5,7 @@ from typing import Optional
 
 class Session(BaseModel):
     id: Optional[int] = Field(None, gt=0)
-    user_id: int
+    username: int
     token: str
     expires_at: Optional[datetime]
     created_at: Optional[datetime]
@@ -14,7 +14,7 @@ class Session(BaseModel):
     def obfuscate(self) -> "Session":
         return Session(
             id=self.id,
-            user_id=self.user_id,
+            username=self.username,
             token="",
             expires_at=self.expires_at,
             created_at=self.created_at,
