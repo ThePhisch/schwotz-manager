@@ -9,14 +9,22 @@ def user_api(usecase: UserUsecases, config: dict):
     enableWebAdministration: bool = config.get("enableWebAdministration", False)
 
     def permissions(func):
+        """
+        Since we only want to disable the web administration, we can use a decorator
+
+        If we wanted to access the session and make access conditional (e.g. admin only,
+        instead of prohibiting it entirely), we could use the same pattern as in
+        src/web/task.py (i.e. get_session function and Depends(get_session) in the route)
+        """
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             if enableWebAdministration:
                 return func(*args, **kwargs)
             else:
                 return {"message": "User administration is disabled from web"}
-        return wrapper
 
+        return wrapper
 
     def get_usecase(request: Request):
         return usecase
@@ -47,9 +55,10 @@ def user_api(usecase: UserUsecases, config: dict):
 
     @route.post("/{user_id}")
     @permissions
-    async def update_user(user_id: int, task: User, usecase: UserUsecases = Depends(get_usecase)):
+    async def update_user(
+        user_id: int, task: User, usecase: UserUsecases = Depends(get_usecase)
+    ):
         usecase.update_user(user_id, task)
         return {"message": f"User {user_id} updated"}
 
-    return route 
-
+    return route

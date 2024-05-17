@@ -54,10 +54,12 @@ def assembler(config: dict):
         "dbhost": config.get("dbhost", "docker-db-1"),
         "dbport": config.get("dbport", "5432"),
     }
-    print(config)
+    
+    session_handler = session_usecase(config, dbconfig)
+
     return create_app([
         core_api(),
-        task_api(task_usecase(config, dbconfig)),
+        task_api(task_usecase(config, dbconfig), session_handler),
         user_api(user_usecase(config, dbconfig), config),
-        session_api(session_usecase(config, dbconfig)),  # safe to run because new table is only created if it doesn't exist
+        session_api(session_handler),  # safe to run because new table is only created if it doesn't exist
     ])
