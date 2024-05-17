@@ -22,6 +22,7 @@ services:
       - ../src:/app/src
       - ../main.py:/app/main.py
       - ../requirements.txt:/app/requirements.txt
+      - ../defaults.toml:/app/defaults.toml
       - ./web_init.sh:/web_init.sh
     ports:
       - "8005:8005"
