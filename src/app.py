@@ -1,7 +1,9 @@
+from src.usecase.session import SessionUsecases
 from src.usecase.task import TaskUsecases
-from src.db.postgres import PostgresTaskDB, PostgresUserDB
+from src.db.postgres import PostgresSessionDB, PostgresTaskDB, PostgresUserDB
 from src.usecase.user import UserUsecases
 from src.web.fastapi import core_api, create_app
+from src.web.session import session_api
 from src.web.task import task_api
 from src.web.user import user_api
 
@@ -23,6 +25,17 @@ def user_usecase(
     u = UserUsecases(db)
     return u
 
+def session_usecase(
+    **dbconfig
+) -> SessionUsecases:
+    sessiondb = PostgresSessionDB(**dbconfig)
+    userdb = PostgresUserDB(**dbconfig)
+    for db in [sessiondb, userdb]:
+        db.open()
+        db.create_table()
+    u = SessionUsecases(sessiondb=sessiondb, userdb=userdb)
+    return u
+
 def assembler(**config):
     dbconfig = {
         "dbname": config.get("dbname", "db"),
@@ -34,5 +47,6 @@ def assembler(**config):
     return create_app([
         core_api(),
         task_api(task_usecase(**dbconfig)),
-        user_api(user_usecase(**dbconfig))
+        user_api(user_usecase(**dbconfig)),
+        session_api(session_usecase(**dbconfig)),
     ])

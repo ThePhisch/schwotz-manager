@@ -7,6 +7,8 @@ import psycopg2
 
 from src.typing import StrDict
 from src.usecase.interfaces import DBInterface
+from src.usecase.session import SessionDBInterface
+from src.usecase.task import TaskDBInterface
 from src.usecase.user import UserDBInterface
 
 class PostgresDB():
@@ -35,9 +37,68 @@ class PostgresDB():
             self.cursor.close()
         self.connection.close()
 
+class PostgresSessionDB(PostgresDB, SessionDBInterface):
+
+    def create_table(self) -> None:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute(
+            "CREATE TABLE IF NOT EXISTS sessions ("
+            "   id SERIAL PRIMARY KEY,"
+            "   user_id INT NOT NULL,"
+            "   token TEXT NOT NULL,"
+            "   expires_at TIMESTAMP NOT NULL,"
+            "   created_at TIMESTAMP NOT NULL,"
+            "   updated_at TIMESTAMP NOT NULL,"
+            "   FOREIGN KEY (user_id) REFERENCES users(id)"
+            ");"
+        )
+        self.connection.commit()
+
+    def new_session(self, session: StrDict) -> None:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute(
+            "INSERT INTO sessions (user_id, token, expires_at, created_at, updated_at) VALUES (%s, %s, %s, %s, %s);",
+            (
+                session["user_id"],
+                session["token"],
+                session["expires_at"],
+                session["created_at"],
+                session["updated_at"],
+            ),
+        )
+        self.connection.commit()
+    
+    def close_session(self, token: str) -> None:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute("DELETE FROM sessions WHERE token = %s;", (token,))
+        self.connection.commit()
+
+    def get_session(self, token: str) -> dict:
+        assert (
+            self.cursor is not None and self.connection is not None
+        ), "Database not open"
+        self.cursor.execute("SELECT * FROM sessions WHERE token = %s;", (token,))
+        result = self.cursor.fetchone()
+        if result is not None:
+            return {
+                "id": result[0],
+                "user_id": result[1],
+                "token": result[2],
+                "expires_at": result[3],
+                "created_at": result[4],
+                "updated_at": result[5],
+            }
+        else:
+            raise ValueError("Session not found")
+
+
 class PostgresUserDB(PostgresDB, UserDBInterface):
-    def __init__(self, dbname: str, dbuser: str, dbpass: str, dbhost: str, dbport: str):
-        super().__init__(dbname, dbuser, dbpass, dbhost, dbport)
 
     def create_table(self) -> None:
         assert (
@@ -123,7 +184,7 @@ class PostgresUserDB(PostgresDB, UserDBInterface):
         else:
             raise Exception("User not found")
 
-class PostgresTaskDB(PostgresDB, DBInterface):
+class PostgresTaskDB(PostgresDB, TaskDBInterface):
     def create_table(self) -> None:
         assert (
             self.cursor is not None and self.connection is not None
