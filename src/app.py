@@ -8,7 +8,7 @@ from src.web.session import session_api
 from src.web.task import task_api
 from src.web.user import user_api
 
-def task_usecase(
+def create_task_usecase(
     config,
     dbconfig
 ) -> TaskUsecases:
@@ -18,7 +18,7 @@ def task_usecase(
     u = TaskUsecases(db)
     return u
 
-def user_usecase(
+def create_user_usecase(
     config,
     dbconfig
 ) -> UserUsecases:
@@ -34,7 +34,7 @@ def user_usecase(
     u = UserUsecases(db)
     return u
 
-def session_usecase(
+def create_session_usecase(
     config,
     dbconfig
 ) -> SessionUsecases:
@@ -55,11 +55,13 @@ def assembler(config: dict):
         "dbport": config.get("dbport", "5432"),
     }
     
-    session_handler = session_usecase(config, dbconfig)
+    task_usecase = create_task_usecase(config, dbconfig)
+    user_usecase = create_user_usecase(config, dbconfig)
+    session_usecase = create_session_usecase(config, dbconfig)
 
     return create_app([
         core_api(),
-        task_api(task_usecase(config, dbconfig), session_handler),
-        user_api(user_usecase(config, dbconfig), config),
-        session_api(session_handler),  # safe to run because new table is only created if it doesn't exist
+        task_api(task_usecase, session_usecase),
+        user_api(user_usecase, config),
+        session_api(session_usecase),  # safe to run because new table is only created if it doesn't exist
     ])
